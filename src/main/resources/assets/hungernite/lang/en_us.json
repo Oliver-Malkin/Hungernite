@@ -1,0 +1,13 @@
+{
+  "itemGroup.hungernite": "Example Mod Tab",
+  "block.hungernite.example_block": "Example Block",
+  "item.hungernite.example_item": "Example Item",
+
+  "hungernite.configuration.title": "Hungernite Configs",
+  "hungernite.configuration.section.hungernite.common.toml": "Hungernite Configs",
+  "hungernite.configuration.section.hungernite.common.toml.title": "Hungernite Configs",
+  "hungernite.configuration.items": "Item List",
+  "hungernite.configuration.logDirtBlock": "Log Dirt Block",
+  "hungernite.configuration.magicNumberIntroduction": "Magic Number Text",
+  "hungernite.configuration.magicNumber": "Magic Number"
+}
