@@ -42,11 +42,11 @@ displayName="${mod_name}" #mandatory
 #credits="" #optional
 
 # The authors of the mod, displayed in the mod UI (optional)
-authors="Oliver Malkin"
+authors="Oliver M"
 
 # The description text for the mod (multi line!) (#mandatory)
 description='''
-A battle royal cross between Hunger Games and Fortnite. Featuring multiple game modes and custom structure generation
+A battle royal cross between Hunger Games and Fortnite. Featuring multiple game modes and custom structure generation.
 '''
 
 # The [[mixins]] block allows you to declare your mixin config to FML so that it gets loaded.
