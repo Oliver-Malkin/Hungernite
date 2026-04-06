@@ -15,7 +15,6 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.omalkin.hungernite.Hungernite;
 import net.omalkin.hungernite.gamemechanics.Lobby;
 import net.omalkin.hungernite.gamemechanics.LobbyManager;
-import net.omalkin.hungernite.gui.ScreenTest;
 
 import java.util.UUID;
 
@@ -129,18 +128,6 @@ public class ModCommands {
                                 .executes(ModCommands::statsCommand)
                         )
         );
-
-        dispatcher.register(
-                Commands.literal("open")
-                        .executes(context -> {
-                            ServerPlayer player = context.getSource().getPlayerOrException();
-
-
-
-                            return 1;
-                        })
-        );
-
     }
 
     private static int statsCommand(CommandContext<CommandSourceStack> context) {

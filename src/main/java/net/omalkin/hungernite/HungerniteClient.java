@@ -7,8 +7,12 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.InputEvent;
+import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
+import net.omalkin.hungernite.screen.SetupScreen;
+import net.omalkin.hungernite.util.KeyBindings;
 
 // This class will not load on dedicated servers. Accessing client side code from here is safe.
 @Mod(value = Hungernite.MODID, dist = Dist.CLIENT)
@@ -27,5 +31,17 @@ public class HungerniteClient {
         // Some client setup code
         Hungernite.LOGGER.info("HELLO FROM CLIENT SETUP");
         Hungernite.LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
+    }
+
+    @SubscribeEvent
+    public static void onKeyRegister(RegisterKeyMappingsEvent event) {
+        event.register(KeyBindings.SETUP_KEYBIND);
+    }
+
+    @SubscribeEvent
+    public static void onKeyInput(InputEvent.Key event) {
+        if(KeyBindings.SETUP_KEYBIND.consumeClick()) {
+            Minecraft.getInstance().setScreen(new SetupScreen());
+        }
     }
 }

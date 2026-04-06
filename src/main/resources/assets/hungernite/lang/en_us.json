@@ -1,13 +1,16 @@
 {
-  "gamemode.no_crafting": "No Crafting",
-  "gamemode.teams": "Teams",
-  "gamemode.hide_and_seek": "Hide and Seek",
-  "gamemode.rediced_vis": "Reduced Visibility",
-  "gamemode.packed_together": "Packed Together",
+  "gamemode.hungernite.no_crafting": "No Crafting",
+  "gamemode.hungernite.teams": "Teams",
+  "gamemode.hungernite.hide_and_seek": "Hide and Seek",
+  "gamemode.hungernite.rediced_vis": "Reduced Visibility",
+  "gamemode.hungernite.packed_together": "Packed Together",
 
-  "gamemode.no_crafting.desc": "No Crafting Allowed! You have to scavenge what you can in chests. This modifies the loot tables to compensate",
-  "gamemode.teams.desc": "You will be placed into teams. Both of you need to be eliminated to lose, but only one of you has to remain to win.",
-  "gamemode.hide_and_seek.desc": "There will be one seeker and everyone else is hiding. Once you have been caught, you are now a seeker. Seekers win by finding all the hiders. Hiders win by staying hidden until the time runs down!",
-  "gamemode.rediced_vis.desc": "There is a thick fog that reduces your visibility",
-  "gamemode.packed_together.desc": "Everyone spawns closer together"
+  "gamemode.hungernite.no_crafting.desc": "No Crafting Allowed! You have to scavenge what you can in chests. This modifies the loot tables to compensate",
+  "gamemode.hungernite.teams.desc": "You will be placed into teams. Both of you need to be eliminated to lose, but only one of you has to remain to win.",
+  "gamemode.hungernite.hide_and_seek.desc": "There will be one seeker and everyone else is hiding. Once you have been caught, you are now a seeker. Seekers win by finding all the hiders. Hiders win by staying hidden until the time runs down!",
+  "gamemode.hungernite.rediced_vis.desc": "There is a thick fog that reduces your visibility",
+  "gamemode.hungernite.packed_together.desc": "Everyone spawns closer together",
+
+  "key.hungernite.setup.category": "Hungernite",
+  "key.hungernite.setup": "Open setup screen"
 }
