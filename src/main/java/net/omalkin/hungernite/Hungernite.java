@@ -1,5 +1,7 @@
 package net.omalkin.hungernite;
 
+import net.omalkin.hungernite.network.ModPackets;
+import net.omalkin.hungernite.screen.ModMenuTypes;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -44,6 +46,9 @@ public class Hungernite {
     public Hungernite(IEventBus modEventBus, ModContainer modContainer) {
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
+
+        // Register the DeferredRegisters
+        ModMenuTypes.Register(modEventBus);
 
         // Register ourselves for server and other game events we are interested in.
         // Note that this is necessary if and only if we want *this* class (Hungernite) to respond directly to events.

@@ -8,7 +8,8 @@ import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.common.UsernameCache;
-import org.jetbrains.annotations.Nullable;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.omalkin.hungernite.network.packets.SetupScreen;
 
 import java.util.*;
 
@@ -21,20 +22,18 @@ public class LobbyManager {
     private static final Random RANDOM = new Random();
     private static final int LOBBY_CODE_LENGTH = 4;
 
-    // TODO: change string messages to components for translations
-
     // USER COMMANDS
     public static int create(CommandContext<CommandSourceStack> context){
         ServerPlayer player = getServerPlayerFromContext(context);
         if(isPlayerInLobby(player)){
-            failure(context, "You are already in a lobby");
+            failure(context, Component.translatable("message.hungernite.lobby.already_in", getLobby(context.getSource().getPlayer()).getId()));
         } else{
             String id = createLobbyId();
             Lobby lobby = new Lobby(id, player);
             LOBBIES.put(id, lobby);
             PLAYER_TO_LOBBY.put(player.getUUID(), id);
 
-            success(context, "Lobby: " + id + " created!", false);
+            success(context, Component.translatable("message.hungernite.lobby.created", id), false);
         }
 
         return 1;
@@ -46,26 +45,26 @@ public class LobbyManager {
         if(LOBBIES.containsKey(lobbyId)) {
             Lobby lobby = LOBBIES.get(lobbyId);
             if(isPlayerInLobby(player)){
-                if(lobby.getPlayers().contains(player.getUUID())){
-                    failure(context, "You are already in this lobby");
-                } else{
-                    failure(context, "You are already in a lobby");
-                }
+                failure(context, Component.translatable("message.hungernite.lobby.already_in", PLAYER_TO_LOBBY.get(player.getUUID())));
             } else{
                 if(lobby.isKicked(player)) {
-                    failure(context, "You cannot join as you were kicked");
+                    failure(context, Component.translatable("message.hungernite.lobby.join_failure", lobbyId)
+                            .append(Component.literal(". "))
+                            .append(Component.translatable("message.hungernite.lobby.kicked")));
                 } else {
                     if(lobby.isRunning()) {
-                        failure(context, "The game is currently in progress");
+                        failure(context, Component.translatable("message.hungernite.lobby.join_failure", lobbyId)
+                                .append(Component.literal(". "))
+                                .append(Component.translatable("message.hungernite.game.already_running")));
                     } else {
                         lobby.addPlayer(player);
                         PLAYER_TO_LOBBY.put(player.getUUID(), lobbyId);
-                        success(context, "You have joined the game: " + lobbyId, false);
+                        success(context, Component.translatable("message.hungernite.lobby.join_success", lobbyId), false);
                     }
                 }
             }
         } else {
-            failure(context, "The lobby " + lobbyId + " does not exist");
+            failure(context, Component.translatable("message.hungernite.lobby.non_existant", lobbyId));
         }
 
         return 1;
@@ -74,14 +73,19 @@ public class LobbyManager {
     public static int leave(CommandContext<CommandSourceStack> context){
         ServerPlayer player = getServerPlayerFromContext(context);
         UUID playerId = player.getUUID();
-        if(PLAYER_TO_LOBBY.containsKey(playerId)){ // Is the player in a lobby
-            String lobbyId = PLAYER_TO_LOBBY.get(playerId);
-            Lobby lobby = LOBBIES.get(lobbyId);
-            if(lobby.getOwner() == playerId){ // Owner leaving
+
+        if(isPlayerInLobby(player)){ // Is the player in a lobby
+            Lobby lobby = getLobby(player);
+            String lobbyId = lobby.getId();
+            if(isOwner(player)){ // Owner leaving
                 if(lobby.getPlayers().size() == 1) { // Last man standing, destroy lobby
                     LOBBIES.remove(lobbyId);
                     PLAYER_TO_LOBBY.remove(playerId);
-                    success(context, "You have left the lobby\nNo players left in lobby. " + lobbyId + " has been destroyed", false);
+                    success(context, Component.translatable("message.hungernite.lobby.leave_success")
+                            .append(Component.literal("\n"))
+                            .append(Component.translatable("message.hungernite.lobby.no_players_left", lobbyId))
+                            .append(Component.literal(". "))
+                            .append(Component.translatable("message.hungernite.lobby.disbanded")), false);
                 } else{ // Transfer lobby to someone else
                     // Remove owner
                     lobby.removePlayer(player);
@@ -90,16 +94,19 @@ public class LobbyManager {
                     // Transfer to new player
                     UUID newPlayer = lobby.getPlayers().iterator().next();
                     lobby.setOwner(newPlayer);
-                    success(context,"You have left the lobby\nLobby ownership transferred to: " + UsernameCache.getLastKnownUsername(newPlayer), false);
+                    success(context, Component.translatable("message.hungernite.lobby.leave_success")
+                            .append(Component.literal("\n"))
+                            .append(Component.translatable("message.hungernite.lobby.transfer",
+                                    UsernameCache.getLastKnownUsername(newPlayer))), false);
                 }
             } else {
                 LOBBIES.get(lobbyId).removePlayer(player);
                 PLAYER_TO_LOBBY.remove(playerId);
                 lobby.removePlayer(player);
-                success(context,"You have left the lobby", false);
+                success(context,Component.translatable("message.hungernite.lobby.leave_success"), false);
             }
         } else {
-            failure(context, "You are not in a lobby");
+            failure(context, Component.translatable("message.hungernite.lobby.not_in"));
         }
 
         return 1;
@@ -113,12 +120,27 @@ public class LobbyManager {
         if (isPlayerInLobby(player)){
             if (isOwner(player)) { // This player owns this lobby
                 destroyLobby(lobby);
-                success(context, "Lobby disbanded", false);
+                success(context, Component.translatable("message.hungernite.lobby.disbanded"), false);
             } else {
-                failure(context, "You are not the lobby owner");
+                failure(context, Component.translatable("message.hungernite.lobby.not_owner"));
             }
         } else {
-            failure(context, "You are not in a lobby");
+            failure(context, Component.translatable("message.hungernite.lobby.not_in"));
+        }
+
+        return 1;
+    }
+
+    public static int setup(CommandContext<CommandSourceStack> context) {
+        ServerPlayer player = getServerPlayerFromContext(context);
+        if(isPlayerInLobby(player)){
+            if(isOwner(player)){
+                PacketDistributor.sendToPlayer(player, new SetupScreen());
+            } else {
+                failure(context, Component.translatable("message.hungernite.lobby.not_owner"));
+            }
+        } else {
+            failure(context, Component.translatable("message.hungernite.lobby.not_in"));
         }
 
         return 1;
@@ -131,15 +153,16 @@ public class LobbyManager {
             if (isOwner(currentPlayer)) {
                 if (getLobby(currentPlayer).getPlayers().contains(newPlayer.getUUID())) { // The new player is in the current lobby
                     getLobby(currentPlayer).setOwner(newPlayer);
-                    success(context,"Lobby transferred to " + newPlayer.getName().getString(), false);
+                    success(context,Component.translatable("message.hungernite.lobby.transfer",
+                            newPlayer.getName().getString()), false);
                 } else {
-                    failure(context, newPlayer.getName().getString() + " is not in the current lobby");
+                    failure(context,  Component.translatable("message.hungernite.lobby.player_not_in", newPlayer.getName().getString()));
                 }
             } else {
-                failure(context, "You are not the lobby owner");
+                failure(context, Component.translatable("message.hungernite.lobby.not_owner"));
             }
         } else {
-            failure(context, "You are not in a lobby");
+            failure(context, Component.translatable("message.hungernite.lobby.not_in"));
         }
 
         return 1;
@@ -152,25 +175,27 @@ public class LobbyManager {
             if(isOwner(currentPlayer)) {
                 if(isPlayerInLobby(kickedPlayer)){
                     if(currentPlayer == kickedPlayer) {
-                        failure(context, "You cannot kick yourself, that'll hurt");
+                        failure(context, Component.translatable("message.hungernite.lobby.kick_self"));
                     } else {
                         getLobby(currentPlayer).kickPlayer(kickedPlayer);
                         PLAYER_TO_LOBBY.remove(kickedPlayer.getUUID());
+                        Component kickMessage = Component.translatable("message.hungernite.lobby.kick", kickedPlayer.getName());
                         try{
                             String reason = StringArgumentType.getString(context, "reason");
-                            success(context, "Kicked player :" + kickedPlayer.getName() + ". Reason: " + reason, true);
-                        } catch (IllegalArgumentException e){
-                            success(context, "Kicked player :" + kickedPlayer.getName(), true);
-                        }
+                            kickMessage = kickMessage.copy()
+                                    .append(Component.literal(". "))
+                                    .append(Component.translatable("message.hungernite.lobby.reason", reason));
+                        } catch (IllegalArgumentException ignored){ }
+                        success(context, kickMessage, true);
                     }
                 } else {
-                    failure(context, kickedPlayer.getName().getString() + " is not in your lobby");
+                    failure(context, Component.translatable("message.hungernite.lobby.player_not_in", kickedPlayer.getName().getString()));
                 }
             } else {
-                failure(context, "You are not the lobby owner");
+                failure(context, Component.translatable("message.hungernite.lobby.not_owner"));
             }
         } else {
-            failure(context, "You are not in a lobby");
+            failure(context, Component.translatable("message.hungernite.lobby.not_in"));
         }
 
         return 1;
@@ -183,12 +208,12 @@ public class LobbyManager {
             if(isOwner(player)) {
                 Lobby lobby = getLobby(player);
                 lobby.setGameState(GameStates.IN_PROGRESS);
-                success(context, "Started the game!", false);
+                success(context, Component.translatable("message.hungernite.game.start"), false);
             } else {
-                failure(context, "You are not the lobby owner");
+                failure(context, Component.translatable("message.hungernite.lobby.not_owner"));
             }
         } else {
-            failure(context, "You are not in a lobby");
+            failure(context, Component.translatable("message.hungernite.lobby.not_in"));
         }
 
         return 1;
@@ -200,12 +225,12 @@ public class LobbyManager {
             if(isOwner(player)) {
                 Lobby lobby = getLobby(player);
                 lobby.setGameState(GameStates.IN_LOBBY);
-                success(context, "Stopped the game!", false);
+                success(context, Component.translatable("message.hungernite.game.stop"), false);
             } else {
-                failure(context, "You are not the lobby owner");
+                failure(context, Component.translatable("message.hungernite.lobby.not_owner"));
             }
         } else {
-            failure(context, "You are not in a lobby");
+            failure(context, Component.translatable("message.hungernite.lobby.not_in"));
         }
 
         return 1;
@@ -218,19 +243,19 @@ public class LobbyManager {
                 Lobby lobby = getLobby(player);
                 if(lobby.isRunning()) {
                     if(lobby.isPaused()){
-                        failure(context, "Game already paused");
+                        failure(context, Component.translatable("message.hungernite.game.already_paused"));
                     } else {
                         lobby.setGameState(GameStates.PAUSED);
-                        success(context, "Game paused", false);
+                        success(context, Component.translatable("message.hungernite.game.pause"), false);
                     }
                 } else {
-                    failure(context, "Game is not running");
+                    failure(context, Component.translatable("message.hungernite.game.not_running"));
                 }
             } else {
-                failure(context, "You are not the lobby owner");
+                failure(context, Component.translatable("message.hungernite.lobby.not_owner"));
             }
         } else {
-            failure(context, "You are not in a lobby");
+            failure(context, Component.translatable("message.hungernite.lobby.not_in"));
         }
 
         return 1;
@@ -243,19 +268,19 @@ public class LobbyManager {
                 Lobby lobby = getLobby(player);
                 if(lobby.isRunning()) {
                     if(!lobby.isPaused()){
-                        failure(context, "Game already running");
+                        failure(context, Component.translatable("message.hungernite.game.already_running"));
                     } else {
                         lobby.setGameState(GameStates.IN_PROGRESS);
-                        success(context, "Game unpaused", false);
+                        success(context, Component.translatable("message.hungernite.game.unpause"), false);
                     }
                 } else {
-                    failure(context, "Game is not running");
+                    failure(context, Component.translatable("message.hungernite.game.already_running"));
                 }
             } else {
-                failure(context, "You are not the lobby owner");
+                failure(context, Component.translatable("message.hungernite.lobby.not_owner"));
             }
         } else {
-            failure(context, "You are not in a lobby");
+            failure(context, Component.translatable("message.hungernite.lobby.not_in"));
         }
 
         return 1;
@@ -268,9 +293,10 @@ public class LobbyManager {
         String reason = StringArgumentType.getString(context, "reason");
         if(LOBBIES.containsKey(lobbyId)){
             destroyLobby(LOBBIES.get(lobbyId));
-            success(context, "Terminated lobby: " + lobbyId + ". Reason: " + reason, true);
+            success(context, Component.translatable("message.hungernite.lobby.terminate", lobbyId)
+                    .append(Component.translatable("message.hungernite.lobby.reason", reason)), true);
         } else {
-            failure(context, "Lobby does not exist");
+            failure(context, Component.translatable("message.hungernite.lobby.non_existant", lobbyId));
         }
 
         return 1;
@@ -318,12 +344,12 @@ public class LobbyManager {
         LOBBIES.remove(lobby.getId()); // Delete the lobby reference
     }
 
-    private static void success(CommandContext<CommandSourceStack> context, String message, boolean logging) {
-        context.getSource().sendSuccess(() -> Component.literal(message), logging);
+    private static void success(CommandContext<CommandSourceStack> context, Component message, boolean logging) {
+        context.getSource().sendSuccess(() -> message, logging);
     }
 
-    private static void failure(CommandContext<CommandSourceStack> context, String message) {
-        context.getSource().sendFailure(Component.literal(message));
+    private static void failure(CommandContext<CommandSourceStack> context, Component message) {
+        context.getSource().sendFailure(message);
     }
 
     private static ServerPlayer getServerPlayerFromContext(CommandContext<CommandSourceStack> context) {
