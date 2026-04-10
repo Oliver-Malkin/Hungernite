@@ -14,5 +14,33 @@
   "key.hungernite.setup.category": "Hungernite",
   "key.hungernite.setup": "Open setup screen",
 
-  "networking.hungernite.failed": "There was a fatal network error"
+  "networking.hungernite.failed": "There was a fatal network error",
+
+  "message.hungernite.lobby.created": "Lobby %s created",
+  "message.hungernite.lobby.terminate": "Lobby %s terminated",
+  "message.hungernite.lobby.transfer": "Lobby transferred to %s",
+  "message.hungernite.lobby.disbanded": "Lobby disbanded",
+  "message.hungernite.lobby.non_existant": "Lobby %s does not exist",
+  "message.hungernite.lobby.join_success": "Joined lobby %s",
+
+  "message.hungernite.lobby.already_in": "You are already in the lobby %s",
+  "message.hungernite.lobby.not_owner": "You are not the lobby owner",
+  "message.hungernite.lobby.not_in": "You are not in a lobby",
+  "message.hungernite.lobby.kick_self": "You cannot kick yourself, that'll hurt",
+  "message.hungernite.lobby.join_failure": "You cannot join %s",
+  "message.hungernite.lobby.kicked": "You have been kicked from the lobby",
+  "message.hungernite.lobby.leave_success": "You have left the lobby",
+
+  "message.hungernite.lobby.player_not_in": "%s is not in the lobby",
+  "message.hungernite.lobby.kick": "Kicked player %s from lobby",
+  "message.hungernite.lobby.reason": "Reason: %s",
+  "message.hungernite.lobby.no_players_left": "No players left in %s",
+
+  "message.hungernite.game.start": "Started the game",
+  "message.hungernite.game.stop": "Stopped the game",
+  "message.hungernite.game.pause": "Paused the game",
+  "message.hungernite.game.unpause": "Unpaused the game",
+  "message.hungernite.game.already_paused": "The game is already paused",
+  "message.hungernite.game.not_running": "The game is not currently running",
+  "message.hungernite.game.already_running": "The game is already running"
 }
