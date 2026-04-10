@@ -12,5 +12,7 @@
   "gamemode.hungernite.packed_together.desc": "Everyone spawns closer together",
 
   "key.hungernite.setup.category": "Hungernite",
-  "key.hungernite.setup": "Open setup screen"
+  "key.hungernite.setup": "Open setup screen",
+
+  "networking.hungernite.failed": "There was a fatal network error"
 }

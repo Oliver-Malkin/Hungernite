@@ -1,5 +1,6 @@
 package net.omalkin.hungernite;
 
+import net.omalkin.hungernite.network.ModPackets;
 import net.omalkin.hungernite.screen.ModMenuTypes;
 import org.slf4j.Logger;
 

@@ -8,7 +8,8 @@ import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.common.UsernameCache;
-import org.jetbrains.annotations.Nullable;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.omalkin.hungernite.network.packets.SetupScreen;
 
 import java.util.*;
 
@@ -114,6 +115,22 @@ public class LobbyManager {
             if (isOwner(player)) { // This player owns this lobby
                 destroyLobby(lobby);
                 success(context, "Lobby disbanded", false);
+            } else {
+                failure(context, "You are not the lobby owner");
+            }
+        } else {
+            failure(context, "You are not in a lobby");
+        }
+
+        return 1;
+    }
+
+    public static int setup(CommandContext<CommandSourceStack> context) {
+        ServerPlayer player = getServerPlayerFromContext(context);
+        if(isPlayerInLobby(player)){
+            if(isOwner(player)){
+                success(context, "Enter lobby setup", false);
+                PacketDistributor.sendToPlayer(player, new SetupScreen());
             } else {
                 failure(context, "You are not the lobby owner");
             }

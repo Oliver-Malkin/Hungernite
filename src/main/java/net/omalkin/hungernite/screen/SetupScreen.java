@@ -28,6 +28,11 @@ public class SetupScreen extends Screen {
         this.addRenderableWidget(modularUI.getWidget());
     }
 
+    @Override
+    public boolean isPauseScreen() {
+        return false;
+    }
+
     private static ModularUI createModularUI() {
         // create a root element
         var root = new UIElement();

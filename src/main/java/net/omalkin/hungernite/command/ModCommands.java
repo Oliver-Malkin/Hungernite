@@ -60,7 +60,7 @@ public class ModCommands {
         dispatcher.register(
                 Commands.literal("hnsetup")
                         .requires(commandSourceStack -> commandSourceStack.getEntity() instanceof ServerPlayer)
-                        .executes(ModCommands::setupCommand)
+                        .executes(LobbyManager::setup)
         );
 
         dispatcher.register(
