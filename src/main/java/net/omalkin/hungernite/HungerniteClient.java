@@ -11,7 +11,7 @@ import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
-import net.omalkin.hungernite.screen.SetupScreen;
+import net.omalkin.hungernite.screen.custom.SetupScreen;
 import net.omalkin.hungernite.util.KeyBindings;
 
 // This class will not load on dedicated servers. Accessing client side code from here is safe.

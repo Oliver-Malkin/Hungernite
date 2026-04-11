@@ -11,7 +11,10 @@ import net.neoforged.neoforge.common.UsernameCache;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.omalkin.hungernite.network.packets.SetupScreen;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
+import java.util.UUID;
 
 public class LobbyManager {
     private static final Map<String, Lobby> LOBBIES = new HashMap<>(); // Stores lobbyId, lobbyInstance
@@ -23,11 +26,11 @@ public class LobbyManager {
     private static final int LOBBY_CODE_LENGTH = 4;
 
     // USER COMMANDS
-    public static int create(CommandContext<CommandSourceStack> context){
+    public static int create(CommandContext<CommandSourceStack> context) {
         ServerPlayer player = getServerPlayerFromContext(context);
-        if(isPlayerInLobby(player)){
+        if (isPlayerInLobby(player)) {
             failure(context, Component.translatable("message.hungernite.lobby.already_in", getLobby(context.getSource().getPlayer()).getId()));
-        } else{
+        } else {
             String id = createLobbyId();
             Lobby lobby = new Lobby(id, player);
             LOBBIES.put(id, lobby);
@@ -39,20 +42,21 @@ public class LobbyManager {
         return 1;
     }
 
-    public static int join(CommandContext<CommandSourceStack> context){
+    public static int join(CommandContext<CommandSourceStack> context) {
         ServerPlayer player = getServerPlayerFromContext(context);
         String lobbyId = StringArgumentType.getString(context, "lobbyId").toUpperCase();
-        if(LOBBIES.containsKey(lobbyId)) {
-            Lobby lobby = LOBBIES.get(lobbyId);
-            if(isPlayerInLobby(player)){
-                failure(context, Component.translatable("message.hungernite.lobby.already_in", PLAYER_TO_LOBBY.get(player.getUUID())));
-            } else{
-                if(lobby.isKicked(player)) {
+
+        if (isPlayerInLobby(player)) {
+            failure(context, Component.translatable("message.hungernite.lobby.already_in", PLAYER_TO_LOBBY.get(player.getUUID())));
+        } else {
+            if (LOBBIES.containsKey(lobbyId)) {
+                Lobby lobby = LOBBIES.get(lobbyId);
+                if (lobby.isKicked(player)) {
                     failure(context, Component.translatable("message.hungernite.lobby.join_failure", lobbyId)
                             .append(Component.literal(". "))
                             .append(Component.translatable("message.hungernite.lobby.kicked")));
                 } else {
-                    if(lobby.isRunning()) {
+                    if (lobby.isRunning()) {
                         failure(context, Component.translatable("message.hungernite.lobby.join_failure", lobbyId)
                                 .append(Component.literal(". "))
                                 .append(Component.translatable("message.hungernite.game.already_running")));
@@ -62,23 +66,23 @@ public class LobbyManager {
                         success(context, Component.translatable("message.hungernite.lobby.join_success", lobbyId), false);
                     }
                 }
+            } else {
+                failure(context, Component.translatable("message.hungernite.lobby.non_existant", lobbyId));
             }
-        } else {
-            failure(context, Component.translatable("message.hungernite.lobby.non_existant", lobbyId));
         }
 
         return 1;
     }
 
-    public static int leave(CommandContext<CommandSourceStack> context){
+    public static int leave(CommandContext<CommandSourceStack> context) {
         ServerPlayer player = getServerPlayerFromContext(context);
         UUID playerId = player.getUUID();
 
-        if(isPlayerInLobby(player)){ // Is the player in a lobby
+        if (isPlayerInLobby(player)) { // Is the player in a lobby
             Lobby lobby = getLobby(player);
             String lobbyId = lobby.getId();
-            if(isOwner(player)){ // Owner leaving
-                if(lobby.getPlayers().size() == 1) { // Last man standing, destroy lobby
+            if (isOwner(player)) { // Owner leaving
+                if (lobby.getPlayers().size() == 1) { // Last man standing, destroy lobby
                     LOBBIES.remove(lobbyId);
                     PLAYER_TO_LOBBY.remove(playerId);
                     success(context, Component.translatable("message.hungernite.lobby.leave_success")
@@ -86,7 +90,7 @@ public class LobbyManager {
                             .append(Component.translatable("message.hungernite.lobby.no_players_left", lobbyId))
                             .append(Component.literal(". "))
                             .append(Component.translatable("message.hungernite.lobby.disbanded")), false);
-                } else{ // Transfer lobby to someone else
+                } else { // Transfer lobby to someone else
                     // Remove owner
                     lobby.removePlayer(player);
                     PLAYER_TO_LOBBY.remove(playerId);
@@ -103,7 +107,7 @@ public class LobbyManager {
                 LOBBIES.get(lobbyId).removePlayer(player);
                 PLAYER_TO_LOBBY.remove(playerId);
                 lobby.removePlayer(player);
-                success(context,Component.translatable("message.hungernite.lobby.leave_success"), false);
+                success(context, Component.translatable("message.hungernite.lobby.leave_success"), false);
             }
         } else {
             failure(context, Component.translatable("message.hungernite.lobby.not_in"));
@@ -117,7 +121,7 @@ public class LobbyManager {
     public static int disband(CommandContext<CommandSourceStack> context) {
         ServerPlayer player = getServerPlayerFromContext(context);
         Lobby lobby = getLobby(player);
-        if (isPlayerInLobby(player)){
+        if (isPlayerInLobby(player)) {
             if (isOwner(player)) { // This player owns this lobby
                 destroyLobby(lobby);
                 success(context, Component.translatable("message.hungernite.lobby.disbanded"), false);
@@ -133,8 +137,8 @@ public class LobbyManager {
 
     public static int setup(CommandContext<CommandSourceStack> context) {
         ServerPlayer player = getServerPlayerFromContext(context);
-        if(isPlayerInLobby(player)){
-            if(isOwner(player)){
+        if (isPlayerInLobby(player)) {
+            if (isOwner(player)) {
                 PacketDistributor.sendToPlayer(player, new SetupScreen());
             } else {
                 failure(context, Component.translatable("message.hungernite.lobby.not_owner"));
@@ -149,14 +153,14 @@ public class LobbyManager {
     public static int transfer(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer currentPlayer = getServerPlayerFromContext(context);
         ServerPlayer newPlayer = EntityArgument.getPlayer(context, "target");
-        if (isPlayerInLobby(currentPlayer)){
+        if (isPlayerInLobby(currentPlayer)) {
             if (isOwner(currentPlayer)) {
                 if (getLobby(currentPlayer).getPlayers().contains(newPlayer.getUUID())) { // The new player is in the current lobby
                     getLobby(currentPlayer).setOwner(newPlayer);
-                    success(context,Component.translatable("message.hungernite.lobby.transfer",
+                    success(context, Component.translatable("message.hungernite.lobby.transfer",
                             newPlayer.getName().getString()), false);
                 } else {
-                    failure(context,  Component.translatable("message.hungernite.lobby.player_not_in", newPlayer.getName().getString()));
+                    failure(context, Component.translatable("message.hungernite.lobby.player_not_in", newPlayer.getName().getString()));
                 }
             } else {
                 failure(context, Component.translatable("message.hungernite.lobby.not_owner"));
@@ -171,21 +175,22 @@ public class LobbyManager {
     public static int kick(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer currentPlayer = getServerPlayerFromContext(context);
         ServerPlayer kickedPlayer = EntityArgument.getPlayer(context, "target");
-        if(isPlayerInLobby(currentPlayer)){
-            if(isOwner(currentPlayer)) {
-                if(isPlayerInLobby(kickedPlayer)){
-                    if(currentPlayer == kickedPlayer) {
+        if (isPlayerInLobby(currentPlayer)) {
+            if (isOwner(currentPlayer)) {
+                if (isPlayerInLobby(kickedPlayer)) {
+                    if (currentPlayer == kickedPlayer) {
                         failure(context, Component.translatable("message.hungernite.lobby.kick_self"));
                     } else {
                         getLobby(currentPlayer).kickPlayer(kickedPlayer);
                         PLAYER_TO_LOBBY.remove(kickedPlayer.getUUID());
                         Component kickMessage = Component.translatable("message.hungernite.lobby.kick", kickedPlayer.getName());
-                        try{
+                        try {
                             String reason = StringArgumentType.getString(context, "reason");
                             kickMessage = kickMessage.copy()
                                     .append(Component.literal(". "))
                                     .append(Component.translatable("message.hungernite.lobby.reason", reason));
-                        } catch (IllegalArgumentException ignored){ }
+                        } catch (IllegalArgumentException ignored) {
+                        }
                         success(context, kickMessage, true);
                     }
                 } else {
@@ -201,11 +206,10 @@ public class LobbyManager {
         return 1;
     }
 
-    // TODO: start and stop commands are temporary for now. They dont have much functionality
-    public static int start(CommandContext<CommandSourceStack> context){
+    public static int start(CommandContext<CommandSourceStack> context) {
         ServerPlayer player = getServerPlayerFromContext(context);
-        if(isPlayerInLobby(player)) {
-            if(isOwner(player)) {
+        if (isPlayerInLobby(player)) {
+            if (isOwner(player)) {
                 Lobby lobby = getLobby(player);
                 lobby.setGameState(GameStates.IN_PROGRESS);
                 success(context, Component.translatable("message.hungernite.game.start"), false);
@@ -219,10 +223,10 @@ public class LobbyManager {
         return 1;
     }
 
-    public static int stop(CommandContext<CommandSourceStack> context){
+    public static int stop(CommandContext<CommandSourceStack> context) {
         ServerPlayer player = getServerPlayerFromContext(context);
-        if(isPlayerInLobby(player)) {
-            if(isOwner(player)) {
+        if (isPlayerInLobby(player)) {
+            if (isOwner(player)) {
                 Lobby lobby = getLobby(player);
                 lobby.setGameState(GameStates.IN_LOBBY);
                 success(context, Component.translatable("message.hungernite.game.stop"), false);
@@ -236,13 +240,13 @@ public class LobbyManager {
         return 1;
     }
 
-    public static int pause(CommandContext<CommandSourceStack> context){
+    public static int pause(CommandContext<CommandSourceStack> context) {
         ServerPlayer player = getServerPlayerFromContext(context);
-        if(isPlayerInLobby(player)){
-            if(isOwner(player)) {
+        if (isPlayerInLobby(player)) {
+            if (isOwner(player)) {
                 Lobby lobby = getLobby(player);
-                if(lobby.isRunning()) {
-                    if(lobby.isPaused()){
+                if (lobby.isRunning()) {
+                    if (lobby.isPaused()) {
                         failure(context, Component.translatable("message.hungernite.game.already_paused"));
                     } else {
                         lobby.setGameState(GameStates.PAUSED);
@@ -261,13 +265,13 @@ public class LobbyManager {
         return 1;
     }
 
-    public static int unpause(CommandContext<CommandSourceStack> context){
+    public static int unpause(CommandContext<CommandSourceStack> context) {
         ServerPlayer player = getServerPlayerFromContext(context);
-        if(isPlayerInLobby(player)){
-            if(isOwner(player)) {
+        if (isPlayerInLobby(player)) {
+            if (isOwner(player)) {
                 Lobby lobby = getLobby(player);
-                if(lobby.isRunning()) {
-                    if(!lobby.isPaused()){
+                if (lobby.isRunning()) {
+                    if (!lobby.isPaused()) {
                         failure(context, Component.translatable("message.hungernite.game.already_running"));
                     } else {
                         lobby.setGameState(GameStates.IN_PROGRESS);
@@ -288,10 +292,10 @@ public class LobbyManager {
 
     // SERVER ADMIN COMMANDS
     // This can only be triggered from a OP level 4 and from the server CLI
-    public static int terminate(CommandContext<CommandSourceStack> context){
+    public static int terminate(CommandContext<CommandSourceStack> context) {
         String lobbyId = StringArgumentType.getString(context, "lobbyId").toUpperCase();
         String reason = StringArgumentType.getString(context, "reason");
-        if(LOBBIES.containsKey(lobbyId)){
+        if (LOBBIES.containsKey(lobbyId)) {
             destroyLobby(LOBBIES.get(lobbyId));
             success(context, Component.translatable("message.hungernite.lobby.terminate", lobbyId)
                     .append(Component.translatable("message.hungernite.lobby.reason", reason)), true);
@@ -304,13 +308,15 @@ public class LobbyManager {
 
 
     // Can make these private eventually
-    public static Map<String, Lobby> getLobbies(){
+    public static Map<String, Lobby> getLobbies() {
         return new HashMap<>(LOBBIES);
     }
-    public static Lobby getLobby(String id){
+
+    public static Lobby getLobby(String id) {
         return LOBBIES.get(id);
     }
-    public static Lobby getLobby(ServerPlayer player){
+
+    public static Lobby getLobby(ServerPlayer player) {
         return LOBBIES.get(PLAYER_TO_LOBBY.get(player.getUUID()));
     }
 
@@ -320,25 +326,26 @@ public class LobbyManager {
 
         do {
             stringBuilder.setLength(0);
-            for(int i = 0; i < LOBBY_CODE_LENGTH; i++){
+            for (int i = 0; i < LOBBY_CODE_LENGTH; i++) {
                 char letter = LETTER_POOL.charAt(RANDOM.nextInt(LETTER_POOL.length()));
                 stringBuilder.append(letter);
             }
-        } while(LOBBIES.containsKey(stringBuilder.toString()));
+        } while (LOBBIES.containsKey(stringBuilder.toString()));
 
         return stringBuilder.toString();
     }
 
-    private static boolean isOwner(ServerPlayer player){
+    private static boolean isOwner(ServerPlayer player) {
         return getLobby(player).getOwner() == player.getUUID();
     }
-    private static boolean isPlayerInLobby(ServerPlayer player){
+
+    private static boolean isPlayerInLobby(ServerPlayer player) {
         return PLAYER_TO_LOBBY.containsKey(player.getUUID());
     }
 
     private static void destroyLobby(Lobby lobby) {
         // Delete players from reverse lookup
-        for(UUID p : lobby.getPlayers()) {
+        for (UUID p : lobby.getPlayers()) {
             PLAYER_TO_LOBBY.remove(p);
         }
         LOBBIES.remove(lobby.getId()); // Delete the lobby reference

@@ -4,12 +4,34 @@
   "gamemode.hungernite.hide_and_seek": "Hide and Seek",
   "gamemode.hungernite.rediced_vis": "Reduced Visibility",
   "gamemode.hungernite.packed_together": "Packed Together",
+  "gamemode.hungernite.fast_paced": "Fast Paced",
 
   "gamemode.hungernite.no_crafting.desc": "No Crafting Allowed! You have to scavenge what you can in chests. This modifies the loot tables to compensate",
   "gamemode.hungernite.teams.desc": "You will be placed into teams. Both of you need to be eliminated to lose, but only one of you has to remain to win.",
   "gamemode.hungernite.hide_and_seek.desc": "There will be one seeker and everyone else is hiding. Once you have been caught, you are now a seeker. Seekers win by finding all the hiders. Hiders win by staying hidden until the time runs down!",
   "gamemode.hungernite.rediced_vis.desc": "There is a thick fog that reduces your visibility",
   "gamemode.hungernite.packed_together.desc": "Everyone spawns closer together",
+  "gamemode.hungernite.fast_paced.desc": "The countdown timer is quicker, so the border shrinks quicker",
+
+  "generation.hungernite.default": "Default",
+  "generation.hungernite.sky_islands": "Sky Islands",
+  "generation.hungernite.continents": "Continents",
+  "generation.hungernite.big_islands": "Big Islands",
+  "generation.hungernite.tunnels": "Tunnels",
+  "generation.hungernite.spring": "Spring",
+  "generation.hungernite.summer": "Summer",
+  "generation.hungernite.autumn": "Autumn",
+  "generation.hungernite.winter": "Winter",
+
+  "generation.hungernite.default.desc": "Practically vanilla generation with some minor playability tweaks",
+  "generation.hungernite.sky_islands.desc": "Large land masses in a void world. You might need lots of blocks!",
+  "generation.hungernite.continents.desc": "Large land masses surrounded by oceans",
+  "generation.hungernite.big_islands.desc": "Big Islands?",
+  "generation.hungernite.tunnels.desc": "Large underground terrain generation with tunnels connecting the caves together",
+  "generation.hungernite.spring.desc": "It's spring",
+  "generation.hungernite.summer.desc": "It's summer",
+  "generation.hungernite.autumn.desc": "It's autumn",
+  "generation.hungernite.winter.desc": "It's winter",
 
   "key.hungernite.setup.category": "Hungernite",
   "key.hungernite.setup": "Open setup screen",
@@ -42,5 +64,17 @@
   "message.hungernite.game.unpause": "Unpaused the game",
   "message.hungernite.game.already_paused": "The game is already paused",
   "message.hungernite.game.not_running": "The game is not currently running",
-  "message.hungernite.game.already_running": "The game is already running"
+  "message.hungernite.game.already_running": "The game is already running",
+
+  "screen.hungernite.setup_title": "Lobby setup",
+  "screen.hungernite.game_modes": "Game Modes",
+  "screen.hungernite.map_type": "Generation Settings",
+  "screen.hungernite.starting_kits": "Starting Kits",
+  "screen.hungernite.on": "On",
+  "screen.hungernite.off": "Off",
+  "screen.hungernite.random": "Random",
+
+  "screen.hungernite.game_modes.desc": "Each one of these game modes can be toggled on or off to effect various aspects of the game",
+  "screen.hungernite.map_type.desc": "This changes what terrain generator is chosen. There are several to choose from to change your experience.",
+  "screen.hungernite.starting_kits.desc": "Each player starts with a starter kit. This can include simple tools as well as some food."
 }

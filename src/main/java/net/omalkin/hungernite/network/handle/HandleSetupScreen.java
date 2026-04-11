@@ -17,7 +17,7 @@ public class HandleSetupScreen {
 
     static class Guard {
         static void openScreen(){
-            Minecraft.getInstance().setScreen(new net.omalkin.hungernite.screen.SetupScreen());
+            Minecraft.getInstance().setScreen(new net.omalkin.hungernite.screen.custom.SetupScreen());
         }
     }
 }
