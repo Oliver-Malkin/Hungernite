@@ -9,6 +9,7 @@ public class Lobby {
     private final Set<UUID> players = new HashSet<>(); // Set of players
     private final Set<UUID> kickedPlayers = new HashSet<>(); // Set of kicked players
     private final EnumSet<GameModes> gameModes;
+    private final int startingKits;
 
     private UUID owner; // Lobbies can be transferred between players
     private GameStates gameState;
@@ -21,6 +22,7 @@ public class Lobby {
         this.gameState = GameStates.IN_LOBBY;
         this.gameModes = EnumSet.noneOf(GameModes.class);
         this.generationOptions = GenerationOptions.DEFAULT;
+        this.startingKits = 0;
     }
 
     // Player is moved from the players set to the kickedPlayers set
@@ -52,7 +54,7 @@ public class Lobby {
         return gameState == GameStates.PAUSED;
     }
     public boolean isRunning() {
-        return gameState != GameStates.IN_LOBBY; // Any state other than IN_LOBBY is counted as running
+        return gameState != GameStates.IN_LOBBY; // Any state other than IN_LOBBY is counted as running (paused is still running)
     }
 
     public UUID getOwner() {

@@ -18,8 +18,10 @@ import net.minecraft.network.chat.TextColor;
 import net.minecraft.world.item.DyeColor;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.omalkin.hungernite.gamemechanics.GameModes;
 import net.omalkin.hungernite.gamemechanics.GenerationOptions;
+import net.omalkin.hungernite.network.packets.UpdateMapTypePacket;
 
 import java.util.List;
 
@@ -63,13 +65,7 @@ public class SetupScreen extends Screen {
                 .minWidth(120)
         );
 
-        var startingKits = new ToggleGroupElement().layout(layoutStyle -> layoutStyle
-                .flexDirection(FlexDirection.COLUMN)
-        );
-        startingKits.addChild(new Toggle().setText(Component.translatable("screen.hungernite.on")));
-        startingKits.addChild(new Toggle().setText(Component.translatable("screen.hungernite.off")).setOn(true));
-        startingKits.addChild(new Toggle().setText(Component.translatable("screen.hungernite.random")));
-
+        // Generation types
         var mapTypeLabel = new Label()
                 .setText(GenerationOptions.DEFAULT.getDescKey().getString())
                 .textStyle(textStyle -> textStyle
@@ -89,13 +85,37 @@ public class SetupScreen extends Screen {
         mapTypeSelector.setSelected(GenerationOptions.DEFAULT);
         mapTypeSelector.setOnValueChanged(value -> {
             mapTypeLabel.setText(value.getDescKey());
+            PacketDistributor.sendToServer(new UpdateMapTypePacket(value.name()));
         });
+
+        // TODO: change this to ENUM
+        // Starting kit toggles
+        var startingKits = new ToggleGroupElement().layout(layoutStyle -> layoutStyle
+                .flexDirection(FlexDirection.COLUMN)
+        );
+        var kitOnToggle = new Toggle().setText(Component.translatable("screen.hungernite.on"));
+        kitOnToggle.toggleLabel.textStyle(textStyle -> textStyle
+                .textColor(ChatFormatting.DARK_GRAY.getColor()).textShadow(false));
+        startingKits.addChild(kitOnToggle);
+
+        var kitOffToggle = new Toggle().setText(Component.translatable("screen.hungernite.off"));
+        kitOffToggle.toggleLabel.textStyle(textStyle -> textStyle
+                .textColor(ChatFormatting.DARK_GRAY.getColor()).textShadow(false));
+        startingKits.addChild(kitOffToggle.setOn(true));
+
+        var kitRandomToggle = new Toggle().setText(Component.translatable("screen.hungernite.random"));
+        kitRandomToggle.toggleLabel.textStyle(textStyle -> textStyle
+                .textColor(ChatFormatting.DARK_GRAY.getColor()).textShadow(false));
+        startingKits.addChild(kitRandomToggle);
 
         leftPanel.addChildren(
                 // Generation settings
                 new UIElement().addChildren(
                         new Label().setText(Component.translatable("screen.hungernite.map_type"))
-                                .textStyle(textStyle -> textStyle.adaptiveWidth(true).textColor(ChatFormatting.GOLD.getColor()))
+                                .textStyle(textStyle -> textStyle
+                                        .adaptiveWidth(true)
+                                        .textColor(ChatFormatting.DARK_PURPLE.getColor())
+                                        .textShadow(false))
                                 .addEventListener(UIEvents.HOVER_TOOLTIPS, event -> {
                                     event.hoverTooltips = HoverTooltips.empty()
                                             .append(Component.translatable("screen.hungernite.map_type.desc"));
@@ -111,7 +131,10 @@ public class SetupScreen extends Screen {
                 // Starting kits
                 new UIElement().addChildren(
                         new Label().setText(Component.translatable("screen.hungernite.starting_kits"))
-                                .textStyle(textStyle -> textStyle.adaptiveWidth(true).textColor(ChatFormatting.GOLD.getColor()))
+                                .textStyle(textStyle -> textStyle
+                                        .adaptiveWidth(true)
+                                        .textColor(ChatFormatting.DARK_PURPLE.getColor())
+                                        .textShadow(false))
                                 .addEventListener(UIEvents.HOVER_TOOLTIPS, event -> {
                                     event.hoverTooltips = HoverTooltips.empty()
                                             .append(Component.translatable("screen.hungernite.starting_kits.desc"));
@@ -127,7 +150,11 @@ public class SetupScreen extends Screen {
 
         for (GameModes options : GameModes.values()) {
             var toAdd = new Toggle().setText(options.getName());
-            toAdd.toggleLabel.textStyle(textStyle -> textStyle.adaptiveWidth(true).textColor(ChatFormatting.DARK_PURPLE.getColor()).textShadow(false));
+            toAdd.toggleLabel.textStyle(textStyle -> textStyle
+                    .adaptiveWidth(true)
+                    .textColor(ChatFormatting.DARK_GRAY.getColor())
+                    .textShadow(false)
+            );
             toAdd.toggleLabel.addEventListener(UIEvents.HOVER_TOOLTIPS, event -> {
                 event.hoverTooltips = HoverTooltips.empty()
                         .append(options.getDescKey());
@@ -139,7 +166,10 @@ public class SetupScreen extends Screen {
                 // Game modes
                 new UIElement().addChildren(
                         new Label().setText(Component.translatable("screen.hungernite.game_modes"))
-                                .textStyle(textStyle -> textStyle.adaptiveWidth(true).textColor(ChatFormatting.GOLD.getColor()))
+                                .textStyle(textStyle -> textStyle
+                                        .adaptiveWidth(true)
+                                        .textColor(ChatFormatting.DARK_PURPLE.getColor())
+                                        .textShadow(false))
                                 .addEventListener(UIEvents.HOVER_TOOLTIPS, event -> {
                                     event.hoverTooltips = HoverTooltips.empty()
                                             .append(Component.translatable("screen.hungernite.game_modes.desc"));
