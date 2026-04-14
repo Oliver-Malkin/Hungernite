@@ -5,7 +5,10 @@ import com.lowdragmc.lowdraglib2.gui.ui.UI;
 import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
 import com.lowdragmc.lowdraglib2.gui.ui.data.Horizontal;
 import com.lowdragmc.lowdraglib2.gui.ui.data.TextWrap;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.*;
+import com.lowdragmc.lowdraglib2.gui.ui.elements.Label;
+import com.lowdragmc.lowdraglib2.gui.ui.elements.Selector;
+import com.lowdragmc.lowdraglib2.gui.ui.elements.Toggle;
+import com.lowdragmc.lowdraglib2.gui.ui.elements.ToggleGroupElement;
 import com.lowdragmc.lowdraglib2.gui.ui.event.HoverTooltips;
 import com.lowdragmc.lowdraglib2.gui.ui.event.UIEvents;
 import com.lowdragmc.lowdraglib2.gui.ui.style.StylesheetManager;
@@ -14,21 +17,33 @@ import dev.vfyjxf.taffy.style.TaffyDisplay;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextColor;
-import net.minecraft.world.item.DyeColor;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.omalkin.hungernite.gamemechanics.GameModes;
 import net.omalkin.hungernite.gamemechanics.GenerationOptions;
+import net.omalkin.hungernite.gamemechanics.StartingKits;
+import net.omalkin.hungernite.network.packets.UpdateGameModePacket;
 import net.omalkin.hungernite.network.packets.UpdateMapTypePacket;
+import net.omalkin.hungernite.network.packets.UpdateStartingKitPacket;
+import net.omalkin.hungernite.util.EnumTranscoder;
 
+import java.util.EnumSet;
 import java.util.List;
 
 @OnlyIn(Dist.CLIENT)
 public class SetupScreen extends Screen {
-    public SetupScreen() {
-        super(Component.literal("Lobby setup"));
+    private final String lobbyId;
+    private final EnumSet<GameModes> gameModes;
+    private final GenerationOptions mapType;
+    private final StartingKits startingKits;
+
+    public SetupScreen(String lobbyId, int gameModes, String mapType, String startingKits) {
+        super(Component.translatable("screen.hungernite.setup_title", lobbyId));
+        this.lobbyId = lobbyId;
+        this.gameModes = EnumTranscoder.decode(gameModes, GameModes.class);
+        this.mapType = GenerationOptions.valueOf(mapType);
+        this.startingKits = StartingKits.valueOf(startingKits);
     }
 
     @Override
@@ -45,7 +60,7 @@ public class SetupScreen extends Screen {
     }
 
     // Define the UI
-    private static ModularUI createModularUI() {
+    private ModularUI createModularUI() {
         var root = new UIElement().layout(layoutStyle -> layoutStyle
                 .paddingAll(1)
                 .gapAll(7)
@@ -65,9 +80,13 @@ public class SetupScreen extends Screen {
                 .minWidth(120)
         );
 
-        // Generation types
+        // ---------------- //
+        // Left panel stuff //
+        // ---------------- //
+
+        // Generation type selector
         var mapTypeLabel = new Label()
-                .setText(GenerationOptions.DEFAULT.getDescKey().getString())
+                .setText(this.mapType.getDescKey().getString())
                 .textStyle(textStyle -> textStyle
                         .textWrap(TextWrap.WRAP)
                         .adaptiveHeight(true)
@@ -82,31 +101,28 @@ public class SetupScreen extends Screen {
                 .minHeight(15)
         );
         mapTypeSelector.setCandidates(List.of(GenerationOptions.values()));
-        mapTypeSelector.setSelected(GenerationOptions.DEFAULT);
+        mapTypeSelector.setSelected(mapType);
         mapTypeSelector.setOnValueChanged(value -> {
             mapTypeLabel.setText(value.getDescKey());
             PacketDistributor.sendToServer(new UpdateMapTypePacket(value.name()));
         });
 
-        // TODO: change this to ENUM
         // Starting kit toggles
-        var startingKits = new ToggleGroupElement().layout(layoutStyle -> layoutStyle
+        var startingKitsGroup = new ToggleGroupElement().layout(layoutStyle -> layoutStyle
                 .flexDirection(FlexDirection.COLUMN)
         );
-        var kitOnToggle = new Toggle().setText(Component.translatable("screen.hungernite.on"));
-        kitOnToggle.toggleLabel.textStyle(textStyle -> textStyle
-                .textColor(ChatFormatting.DARK_GRAY.getColor()).textShadow(false));
-        startingKits.addChild(kitOnToggle);
-
-        var kitOffToggle = new Toggle().setText(Component.translatable("screen.hungernite.off"));
-        kitOffToggle.toggleLabel.textStyle(textStyle -> textStyle
-                .textColor(ChatFormatting.DARK_GRAY.getColor()).textShadow(false));
-        startingKits.addChild(kitOffToggle.setOn(true));
-
-        var kitRandomToggle = new Toggle().setText(Component.translatable("screen.hungernite.random"));
-        kitRandomToggle.toggleLabel.textStyle(textStyle -> textStyle
-                .textColor(ChatFormatting.DARK_GRAY.getColor()).textShadow(false));
-        startingKits.addChild(kitRandomToggle);
+        for(StartingKits kits : StartingKits.values()){
+            var kit = new Toggle().setText(kits.toString());
+            kit.toggleLabel.textStyle(textStyle -> textStyle
+                    .textColor(ChatFormatting.DARK_GRAY.getColor()).textShadow(false));
+            kit.setOn(kits.name().equals(this.startingKits.name()));
+            kit.setOnToggleChanged(isOn -> {
+                if(isOn){
+                    PacketDistributor.sendToServer(new UpdateStartingKitPacket(kits.name()));
+                }
+            });
+            startingKitsGroup.addChild(kit);
+        }
 
         leftPanel.addChildren(
                 // Generation settings
@@ -140,16 +156,21 @@ public class SetupScreen extends Screen {
                                             .append(Component.translatable("screen.hungernite.starting_kits.desc"));
                                 }).layout(layoutStyle -> layoutStyle
                                         .gapAll(2)),
-                        startingKits
+                        startingKitsGroup
                 ).layout(layoutStyle -> layoutStyle
                         .gapAll(1)
                 )
         );
 
+        // ----------------- //
+        // Right panel stuff //
+        // ----------------- //
+
         var gameModeToggles = new UIElement();
 
         for (GameModes options : GameModes.values()) {
             var toAdd = new Toggle().setText(options.getName());
+            toAdd.setOn(gameModes.contains(options));
             toAdd.toggleLabel.textStyle(textStyle -> textStyle
                     .adaptiveWidth(true)
                     .textColor(ChatFormatting.DARK_GRAY.getColor())
@@ -158,6 +179,9 @@ public class SetupScreen extends Screen {
             toAdd.toggleLabel.addEventListener(UIEvents.HOVER_TOOLTIPS, event -> {
                 event.hoverTooltips = HoverTooltips.empty()
                         .append(options.getDescKey());
+            });
+            toAdd.setOnToggleChanged(isOn -> {
+                PacketDistributor.sendToServer(new UpdateGameModePacket(options.name(), isOn));
             });
             gameModeToggles.addChild(toAdd);
         }
@@ -187,7 +211,7 @@ public class SetupScreen extends Screen {
         body.addClass("panel_bg");
 
         root.addChildren(
-                new Label().setText(Component.translatable("screen.hungernite.setup_title"))
+                new Label().setText(Component.translatable("screen.hungernite.setup_title", this.lobbyId))
                         .textStyle(textStyle -> textStyle.textAlignHorizontal(Horizontal.CENTER)),
                 body
         );

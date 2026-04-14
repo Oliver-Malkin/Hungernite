@@ -40,8 +40,8 @@ public class HungerniteClient {
 
     @SubscribeEvent
     public static void onKeyInput(InputEvent.Key event) {
-        if(KeyBindings.SETUP_KEYBIND.consumeClick()) {
-            Minecraft.getInstance().setScreen(new SetupScreen());
+        if (KeyBindings.SETUP_KEYBIND.consumeClick()) {
+            Minecraft.getInstance().setScreen(new SetupScreen("aaaa", 0, "DEFAULT", "OFF"));
         }
     }
 }

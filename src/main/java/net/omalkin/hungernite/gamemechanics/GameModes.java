@@ -18,7 +18,7 @@ public enum GameModes {
         this.descKey = descKey;
     }
 
-    public Component getName(){
+    public Component getName() {
         return Component.translatable(nameKey);
     }
 

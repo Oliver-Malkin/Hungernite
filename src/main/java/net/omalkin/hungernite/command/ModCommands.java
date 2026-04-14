@@ -76,9 +76,9 @@ public class ModCommands {
                         .requires(commandSourceStack -> commandSourceStack.getEntity() instanceof ServerPlayer)
                         .then(Commands.argument("target", EntityArgument.player())
                                 .executes(LobbyManager::kick)
-                                    .then(Commands.argument("reason", StringArgumentType.greedyString())
-                                            .executes(LobbyManager::kick)
-                                    )
+                                .then(Commands.argument("reason", StringArgumentType.greedyString())
+                                        .executes(LobbyManager::kick)
+                                )
                         )
         );
 
@@ -116,8 +116,8 @@ public class ModCommands {
                 Commands.literal("hnterminate")
                         .requires(commandSourceStack -> commandSourceStack.hasPermission(4))
                         .then(Commands.argument("lobbyId", StringArgumentType.string())  // Always need an ID
-                        .then(Commands.argument("reason", StringArgumentType.greedyString())  // Must also provide a reason
-                            .executes(LobbyManager::terminate))
+                                .then(Commands.argument("reason", StringArgumentType.greedyString())  // Must also provide a reason
+                                        .executes(LobbyManager::terminate))
                         )
         );
 
@@ -134,7 +134,7 @@ public class ModCommands {
         String lobbyId = StringArgumentType.getString(context, "lobbyId").toUpperCase();
         Lobby lobby = LobbyManager.getLobby(lobbyId);
         StringBuilder players = new StringBuilder();
-        for (UUID p : lobby.getPlayers()){
+        for (UUID p : lobby.getPlayers()) {
             players.append(UsernameCache.getLastKnownUsername(p));
             players.append(" ");
         }
@@ -145,7 +145,7 @@ public class ModCommands {
 
     private static int listCommand(CommandContext<CommandSourceStack> context) {
         String lobbies = LobbyManager.getLobbies().toString();
-        context.getSource().sendSuccess(() ->Component.literal("Lobbies: " + lobbies), false);
+        context.getSource().sendSuccess(() -> Component.literal("Lobbies: " + lobbies), false);
         return 1;
     }
 

@@ -5,7 +5,7 @@ import net.minecraft.network.chat.Component;
 public enum StartingKits {
     ON("screen.hungernite.on"),
     OFF("screen.hungernite.off"),
-    RANDOM("screen.hungernite.random"),;
+    RANDOM("screen.hungernite.random");
 
     private final String nameKey;
 
@@ -13,7 +13,7 @@ public enum StartingKits {
         this.nameKey = nameKey;
     }
 
-    public Component getName(){
+    public Component getName() {
         return Component.translatable(nameKey);
     }
 

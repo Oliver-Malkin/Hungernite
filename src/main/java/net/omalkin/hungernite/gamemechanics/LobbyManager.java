@@ -3,13 +3,15 @@ package net.omalkin.hungernite.gamemechanics;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.common.UsernameCache;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.omalkin.hungernite.network.packets.SetupScreen;
+import net.omalkin.hungernite.network.packets.SetupScreenPacket;
+import net.omalkin.hungernite.util.EnumTranscoder;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -139,7 +141,10 @@ public class LobbyManager {
         ServerPlayer player = getServerPlayerFromContext(context);
         if (isPlayerInLobby(player)) {
             if (isOwner(player)) {
-                PacketDistributor.sendToPlayer(player, new SetupScreen());
+                Lobby lobby = getLobby(player);
+                int gameModes = EnumTranscoder.encode(lobby.getGameModes());
+                PacketDistributor.sendToPlayer(player, new SetupScreenPacket(lobby.getId(), gameModes,
+                        lobby.getGenerationOptions().name(), lobby.getStartingKit().name()));
             } else {
                 failure(context, Component.translatable("message.hungernite.lobby.not_owner"));
             }
@@ -306,6 +311,48 @@ public class LobbyManager {
         return 1;
     }
 
+    // Network packets
+    public static void updateMapType(GenerationOptions generationOptions, ServerPlayer player) {
+        if(isPlayerInLobby(player)){
+            if(isOwner(player)){
+                getLobby(player).setGenerationOptions(generationOptions);
+            } else {
+                sendClientMessage(player, Component.translatable("message.hungernite.lobby.not_owner").withColor(ChatFormatting.RED.getColor()));
+            }
+        } else {
+            sendClientMessage(player, Component.translatable("message.hungernite.lobby.not_in").withColor(ChatFormatting.RED.getColor()));
+        }
+    }
+
+    public static void updateKit(StartingKits kit, ServerPlayer player) {
+        if(isPlayerInLobby(player)){
+            if(isOwner(player)){
+                getLobby(player).setStartingKit(kit);
+            } else {
+                sendClientMessage(player, Component.translatable("message.hungernite.lobby.not_owner").withColor(ChatFormatting.RED.getColor()));
+            }
+        } else {
+            sendClientMessage(player, Component.translatable("message.hungernite.lobby.not_in").withColor(ChatFormatting.RED.getColor()));
+        }
+    }
+
+    public static void updateGameMode(GameModes gameMode, boolean state, ServerPlayer player) {
+        if(isPlayerInLobby(player)){
+            if(isOwner(player)){
+                Lobby lobby = getLobby(player);
+                if(state) {
+                    lobby.enable(gameMode);
+                } else {
+                    lobby.disable(gameMode);
+                }
+            } else {
+                sendClientMessage(player, Component.translatable("message.hungernite.lobby.not_owner").withColor(ChatFormatting.RED.getColor()));
+            }
+        } else {
+            sendClientMessage(player, Component.translatable("message.hungernite.lobby.not_in").withColor(ChatFormatting.RED.getColor()));
+        }
+    }
+
 
     // Can make these private eventually
     public static Map<String, Lobby> getLobbies() {
@@ -361,5 +408,9 @@ public class LobbyManager {
 
     private static ServerPlayer getServerPlayerFromContext(CommandContext<CommandSourceStack> context) {
         return context.getSource().getPlayer();
+    }
+
+    private static void sendClientMessage(ServerPlayer player, Component component) {
+        player.displayClientMessage(component, false);
     }
 }

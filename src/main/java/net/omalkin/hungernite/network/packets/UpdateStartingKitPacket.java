@@ -7,13 +7,13 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.omalkin.hungernite.Hungernite;
 
-public record UpdateMapTypePacket(String mapType) implements CustomPacketPayload {
-    public static final Type<UpdateMapTypePacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(Hungernite.MODID, "update_generation_settings"));
+public record UpdateStartingKitPacket(String kit) implements CustomPacketPayload {
+    public static final Type<UpdateStartingKitPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(Hungernite.MODID, "update_starting_kit"));
 
-    public static final StreamCodec<ByteBuf, UpdateMapTypePacket> STREAM_CODEC = StreamCodec.composite(
+    public static final StreamCodec<ByteBuf, UpdateStartingKitPacket> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.STRING_UTF8,
-            UpdateMapTypePacket::mapType,
-            UpdateMapTypePacket::new
+            UpdateStartingKitPacket::kit,
+            UpdateStartingKitPacket::new
     );
 
     @Override

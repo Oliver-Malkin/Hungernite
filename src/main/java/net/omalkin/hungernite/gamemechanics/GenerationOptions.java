@@ -17,12 +17,12 @@ public enum GenerationOptions {
     private final String nameKey;
     private final String descKey;
 
-    GenerationOptions(String nameKey, String descKey){
+    GenerationOptions(String nameKey, String descKey) {
         this.nameKey = nameKey;
         this.descKey = descKey;
     }
 
-    public Component getName(){
+    public Component getName() {
         return Component.translatable(nameKey);
     }
 
