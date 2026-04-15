@@ -5,10 +5,7 @@ import com.lowdragmc.lowdraglib2.gui.ui.UI;
 import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
 import com.lowdragmc.lowdraglib2.gui.ui.data.Horizontal;
 import com.lowdragmc.lowdraglib2.gui.ui.data.TextWrap;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Label;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Selector;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Toggle;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.ToggleGroupElement;
+import com.lowdragmc.lowdraglib2.gui.ui.elements.*;
 import com.lowdragmc.lowdraglib2.gui.ui.event.HoverTooltips;
 import com.lowdragmc.lowdraglib2.gui.ui.event.UIEvents;
 import com.lowdragmc.lowdraglib2.gui.ui.style.StylesheetManager;
@@ -28,8 +25,7 @@ import net.omalkin.hungernite.network.packets.UpdateMapTypePacket;
 import net.omalkin.hungernite.network.packets.UpdateStartingKitPacket;
 import net.omalkin.hungernite.util.EnumTranscoder;
 
-import java.util.EnumSet;
-import java.util.List;
+import java.util.*;
 
 @OnlyIn(Dist.CLIENT)
 public class SetupScreen extends Screen {
@@ -37,6 +33,7 @@ public class SetupScreen extends Screen {
     private final EnumSet<GameModes> gameModes;
     private final GenerationOptions mapType;
     private final StartingKits startingKits;
+    private final Set<Toggle> enabledOptions = new HashSet<>();
 
     public SetupScreen(String lobbyId, int gameModes, String mapType, String startingKits) {
         super(Component.translatable("screen.hungernite.setup_title", lobbyId));
@@ -183,8 +180,22 @@ public class SetupScreen extends Screen {
             toAdd.setOnToggleChanged(isOn -> {
                 PacketDistributor.sendToServer(new UpdateGameModePacket(options.name(), isOn));
             });
+            this.enabledOptions.add(toAdd);
             gameModeToggles.addChild(toAdd);
         }
+
+        var gameModeButtons = new UIElement().layout(layoutStyle -> layoutStyle.flexDirection(FlexDirection.ROW).paddingAll(3).gapAll(2));
+        gameModeButtons.addChildren(
+                new Button().setText(Component.translatable("screen.hungernite.on"))
+                        .textStyle(textStyle -> textStyle.fontSize(8))
+                        .setOnClick(e -> setGameModes(1)),
+                new Button().setText(Component.translatable("screen.hungernite.off"))
+                        .textStyle(textStyle -> textStyle.fontSize(8))
+                        .setOnClick(e -> setGameModes(2)),
+                new Button().setText(Component.translatable("screen.hungernite.randomise"))
+                        .textStyle(textStyle -> textStyle.fontSize(8))
+                        .setOnClick(e -> setGameModes(3))
+        );
 
         rightPanel.addChildren(
                 // Game modes
@@ -198,7 +209,8 @@ public class SetupScreen extends Screen {
                                     event.hoverTooltips = HoverTooltips.empty()
                                             .append(Component.translatable("screen.hungernite.game_modes.desc"));
                                 }),
-                        gameModeToggles.layout(layoutStyle -> layoutStyle.paddingAll(2))
+                        gameModeToggles.layout(layoutStyle -> layoutStyle.paddingAll(2)),
+                        gameModeButtons
                 ).layout(layoutStyle -> layoutStyle
                         .gapAll(1)
                 )
@@ -217,5 +229,24 @@ public class SetupScreen extends Screen {
         );
 
         return ModularUI.of(UI.of(root, StylesheetManager.INSTANCE.getStylesheetSafe(StylesheetManager.MC)));
+    }
+
+    private void setGameModes(int mode) {
+        Random random = new Random();
+        for (Toggle option : enabledOptions) {
+            switch (mode) {
+                case 1:
+                    option.setOn(true);
+                    break;
+                case 2:
+                    option.setOn(false);
+                    break;
+                case 3:
+                    option.setOn(random.nextBoolean());
+                    break;
+                default:
+                    return;
+            }
+        }
     }
 }

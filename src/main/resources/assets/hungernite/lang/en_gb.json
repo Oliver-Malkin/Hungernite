@@ -73,7 +73,9 @@
   "screen.hungernite.on": "On",
   "screen.hungernite.off": "Off",
   "screen.hungernite.random": "Random",
-  "screen.hungernite.randomise": "Randomize",
+  "screen.hungernite.randomise": "Randomise",
+  "screen.hungernite.all_off": "All off",
+  "screen.hungernite.all_on": "All on",
 
   "screen.hungernite.game_modes.desc": "Each one of these game modes can be toggled on or off to effect various aspects of the game",
   "screen.hungernite.map_type.desc": "This changes what terrain generator is chosen. There are several to choose from to change your experience.",
